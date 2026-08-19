@@ -6,7 +6,6 @@ import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from sklearn.preprocessing import StandardScaler
-import logging
 import dash_bootstrap_components as dbc
 from pathlib import Path
 
@@ -20,13 +19,6 @@ data_path = (current_dir / ".." / "data" / "processed_data.h5ad").resolve()
 
 # Load processed data
 adata = sc.read_h5ad(data_path)
-
-# Precompute dimensionality reductions if not present
-if 'X_umap' not in adata.obsm:
-    sc.pp.neighbors(adata)
-    sc.tl.umap(adata)
-if 'X_tsne' not in adata.obsm:
-    sc.tl.tsne(adata)
 
 # Prepare data
 if 'leiden' in adata.obs:
@@ -77,11 +69,27 @@ data['umap_3d'] = pd.DataFrame(
     columns=['UMAP1', 'UMAP2', 'UMAP3'],
     index=adata.obs_names
 )
-data['umap_3d']['Cluster'] = data['clusters'].values  # Add cluster info
+data['umap_3d']['Cluster'] = data['clusters'].values
 
-# Add cluster information to all dimensionality reduction dataframes
+# Add cluster info + consistent hover fields to every embedding dataframe
+HOVER_COLS = [c for c in ['total_counts', 'pct_counts_mt'] if c in adata.obs.columns]
 for key in ['umap', 'tsne', 'trimap', 'diffmap', 'phate']:
     data[key]['Cluster'] = data['clusters'].values
+    for col in HOVER_COLS:
+        data[key][col] = adata.obs[col].values
+for col in HOVER_COLS:
+    data['umap_3d'][col] = adata.obs[col].values
+
+# ---------------------------------------------------------------------------
+# Shared cluster -> color mapping, applied consistently across every tab so
+# the same cluster always renders in the same color regardless of which
+# embedding it's viewed in.
+# ---------------------------------------------------------------------------
+_cluster_ids_sorted = sorted(data['clusters'].unique(), key=lambda x: int(x))
+_palette = px.colors.qualitative.Alphabet  # 26 distinct colors, covers up to 26 clusters
+CLUSTER_COLOR_MAP = {
+    cl: _palette[i % len(_palette)] for i, cl in enumerate(_cluster_ids_sorted)
+}
 
 # Theme styles
 tab_style = {
@@ -143,6 +151,36 @@ def dark_plotly_layout(fig, is3d=False):
         )
     return fig
 
+def stat_card(label, value):
+    return html.Div(
+        [
+            html.Div(str(value), style={
+                'fontSize': '1.6vw', 'fontWeight': 700, 'color': '#ff8aff',
+                'fontFamily': "'DM Mono', monospace"
+            }),
+            html.Div(label, style={
+                'fontSize': '0.85vw', 'color': '#999', 'textTransform': 'uppercase',
+                'letterSpacing': '0.05em', 'fontFamily': "'DM Mono', monospace"
+            }),
+        ],
+        style={
+            'backgroundColor': '#1a1a1a', 'border': '1px solid #333', 'borderRadius': '8px',
+            'padding': '1vw', 'textAlign': 'center', 'flex': '1'
+        }
+    )
+
+stats_strip = html.Div(
+    [
+        stat_card("Cells", f"{adata.n_obs:,}"),
+        stat_card("Genes (HVGs)", f"{adata.n_vars:,}"),
+        stat_card("Clusters", len(_cluster_ids_sorted)),
+        stat_card("Embeddings", 6),
+    ],
+    style={
+        'display': 'flex', 'gap': '1vw', 'margin': '0 2vw 2vw 2vw'
+    }
+)
+
 layout = html.Div(
     style={
         'backgroundColor': '#111',
@@ -160,7 +198,7 @@ layout = html.Div(
                 'fontWeight': 200,
                 'fontSize': '3vw',
                 'letterSpacing': '0.14em',
-                'marginBottom': '2vw',
+                'marginBottom': '1vw',
                 'lineHeight': '1.05',
                 'textTransform': 'uppercase',
                 'color': 'white',
@@ -168,9 +206,34 @@ layout = html.Div(
                 'marginTop': '2vw'
             }
         ),
+        stats_strip,
         dcc.Tabs(
             className="custom-tabs",
             children=[
+                dcc.Tab(label='OVERVIEW', className="custom-tab", selected_className="custom-tab--selected",
+                        style=tab_style, selected_style=tab_selected_style, children=[
+                    html.Div([
+                        html.H3("About This Dataset", style={'color': 'white', 'fontFamily': "'DM Mono', monospace"}),
+                        html.P(
+                            "This dashboard visualizes a processed single-cell RNA-seq dataset. Raw counts were "
+                            "filtered for quality (mitochondrial content, gene detection), normalized, and reduced "
+                            "to the top variable genes before scaling. Cells were clustered using the Leiden "
+                            "algorithm, and multiple dimensionality reduction methods were computed -- PCA, UMAP "
+                            "(2D and 3D), t-SNE, TriMap, Diffusion Map, and PHATE -- so that the same underlying "
+                            "structure can be compared across techniques. Every embedding below uses the same "
+                            "color for the same cluster, so a cell's color stays consistent no matter which tab "
+                            "you're viewing.",
+                            style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw',
+                                   'marginBottom': '1.5vw', 'maxWidth': '60vw'}
+                        ),
+                        html.P(
+                            "Use the tabs above to explore quality control metrics, individual embeddings, "
+                            "gene expression overlays, and a marker gene heatmap across clusters.",
+                            style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw',
+                                   'maxWidth': '60vw'}
+                        ),
+                    ])
+                ]),
                 dcc.Tab(label='QUALITY CONTROL', className="custom-tab", selected_className="custom-tab--selected",
                         style=tab_style, selected_style=tab_selected_style, children=[
                     html.Div([
@@ -178,7 +241,7 @@ layout = html.Div(
                         html.P(
                             "Quality control (QC) metrics assess the quality of individual cells and genes in your dataset. "
                             "These plots help identify low-quality cells (e.g., with high mitochondrial content or low gene counts) "
-                            "that may need to be filtered before downstream analysis. The plots below are quality control metrtics of your data post filtering",
+                            "that may need to be filtered before downstream analysis. The plots below are quality control metrics of your data post filtering",
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
                         dbc.Row([
@@ -215,7 +278,7 @@ layout = html.Div(
                         dcc.Graph(id='umap-plot', style={'width': '80vw', 'height': '80vw'})
                     ])
                 ]),
-                dcc.Tab(label='UMAP 3D', className="custom-tab", 
+                dcc.Tab(label='UMAP 3D', className="custom-tab",
                         selected_className="custom-tab--selected",
                         style=tab_style, selected_style=tab_selected_style, children=[
                     html.Div([
@@ -325,6 +388,13 @@ layout = html.Div(
     ]
 )
 
+
+def _scatter_hover_kwargs():
+    """Shared hover_data kwargs so every embedding tab shows the same
+    extra fields (total counts, % mito) when they're available."""
+    return {c: True for c in HOVER_COLS} if HOVER_COLS else None
+
+
 @dash.callback(
     [Output('violin-counts', 'figure'),
      Output('violin-genes', 'figure'),
@@ -332,10 +402,9 @@ layout = html.Div(
      Output('ridge-counts', 'figure'),
      Output('ridge-genes', 'figure'),
      Output('ridge-mito', 'figure')],
-    [Input('violin-counts', 'id')]  # Dummy input
+    [Input('violin-counts', 'id')]  # Dummy input, fires once on page load
 )
 def update_qc_metrics(_):
-    # Create QC DataFrame with cluster information
     qc_data = pd.DataFrame({
         'n_counts': adata.obs['total_counts'] if 'total_counts' in adata.obs else np.zeros(adata.n_obs),
         'n_genes': adata.obs['n_genes'] if 'n_genes' in adata.obs else np.zeros(adata.n_obs),
@@ -343,7 +412,6 @@ def update_qc_metrics(_):
         'Cluster': data['clusters'].astype(str)
     })
 
-    # Create individual violin plots
     violin_counts = px.violin(qc_data, y='n_counts', box=True, points='all',
                              title='Total UMI Counts Distribution')
     violin_genes = px.violin(qc_data, y='n_genes', box=True, points='all',
@@ -351,13 +419,12 @@ def update_qc_metrics(_):
     violin_mito = px.violin(qc_data, y='percent_mito', box=True, points='all',
                            title='Mitochondrial % Distribution')
 
-    # Create ridge plots using horizontal violins
     def create_ridge_plot(metric, title):
         fig = px.violin(qc_data, x=metric, y='Cluster', color='Cluster',
                         orientation='h', box=True, points=False,
-                        title=title, height=800)
-        fig.update_traces(side='positive', width=1.5, line_color='pink',
-                         meanline_visible=True, scalemode='count')
+                        title=title, height=800,
+                        color_discrete_map=CLUSTER_COLOR_MAP)
+        fig.update_traces(side='positive', width=1.5, meanline_visible=True, scalemode='count')
         fig.update_layout(showlegend=False, xaxis_showgrid=False)
         return fig
 
@@ -365,11 +432,11 @@ def update_qc_metrics(_):
     ridge_genes = create_ridge_plot('n_genes', 'Genes Detected per Cluster')
     ridge_mito = create_ridge_plot('percent_mito', 'Mitochondrial % per Cluster')
 
-    # Apply dark theme to all figures
     return [dark_plotly_layout(fig) for fig in [
         violin_counts, violin_genes, violin_mito,
         ridge_counts, ridge_genes, ridge_mito
     ]]
+
 
 @dash.callback(
     Output('pca-variance-plot', 'figure'),
@@ -391,6 +458,7 @@ def update_pca_variance(_):
     )
     return dark_plotly_layout(fig)
 
+
 @dash.callback(
     Output('umap-plot', 'figure'),
     Input('umap-plot', 'id')
@@ -401,9 +469,11 @@ def update_umap(_):
         x='UMAP1', y='UMAP2',
         color='Cluster',
         title='2D UMAP colored by clusters',
-        color_discrete_sequence=px.colors.qualitative.Dark24
+        color_discrete_map=CLUSTER_COLOR_MAP,
+        hover_data=_scatter_hover_kwargs()
     )
     return dark_plotly_layout(fig)
+
 
 @dash.callback(
     Output('umap-3d-plot', 'figure'),
@@ -416,16 +486,18 @@ def update_umap_3d(_):
             paper_bgcolor='#222',
             font=dict(color='white')
         )
-    
+
     fig = px.scatter_3d(
         data['umap_3d'],
         x='UMAP1', y='UMAP2', z='UMAP3',
         color='Cluster',
         title='3D UMAP colored by clusters',
-        color_discrete_sequence=px.colors.qualitative.Dark24,
+        color_discrete_map=CLUSTER_COLOR_MAP,
+        hover_data=_scatter_hover_kwargs(),
         height=800
     )
     return dark_plotly_layout(fig, is3d=True)
+
 
 @dash.callback(
     Output('tsne-plot', 'figure'),
@@ -437,9 +509,11 @@ def update_tsne(_):
         x='tSNE1', y='tSNE2',
         color='Cluster',
         title='2D t-SNE colored by clusters',
-        color_discrete_sequence=px.colors.qualitative.Vivid
+        color_discrete_map=CLUSTER_COLOR_MAP,
+        hover_data=_scatter_hover_kwargs()
     )
     return dark_plotly_layout(fig)
+
 
 @dash.callback(
     Output('trimap-plot', 'figure'),
@@ -451,9 +525,11 @@ def update_trimap(_):
         x='TriMap1', y='TriMap2',
         color='Cluster',
         title='2D TriMap colored by clusters',
-        color_discrete_sequence=px.colors.qualitative.Bold
+        color_discrete_map=CLUSTER_COLOR_MAP,
+        hover_data=_scatter_hover_kwargs()
     )
     return dark_plotly_layout(fig)
+
 
 @dash.callback(
     Output('diffmap-plot', 'figure'),
@@ -465,9 +541,11 @@ def update_diffmap(_):
         x='DiffMap1', y='DiffMap2',
         color='Cluster',
         title='2D Diffusion Map colored by clusters',
-        color_discrete_sequence=px.colors.qualitative.Pastel
+        color_discrete_map=CLUSTER_COLOR_MAP,
+        hover_data=_scatter_hover_kwargs()
     )
     return dark_plotly_layout(fig)
+
 
 @dash.callback(
     Output('phate-plot', 'figure'),
@@ -479,9 +557,11 @@ def update_phate(_):
         x='PHATE1', y='PHATE2',
         color='Cluster',
         title='2D PHATE colored by clusters',
-        color_discrete_sequence=px.colors.qualitative.Prism
+        color_discrete_map=CLUSTER_COLOR_MAP,
+        hover_data=_scatter_hover_kwargs()
     )
     return dark_plotly_layout(fig)
+
 
 @dash.callback(
     Output('gene-expression-plot', 'figure'),
@@ -489,16 +569,13 @@ def update_phate(_):
      Input('reduction-selector', 'value')]
 )
 def update_gene_expression(selected_gene, reduction_method):
-    # Handle None or invalid gene selection
     if selected_gene is None or selected_gene not in data['genes']:
-        return dash.no_update  # Prevent unnecessary updates
+        return dash.no_update
 
-    # Get the appropriate dimensionality reduction data based on the selection
     reduction_data = data.get(reduction_method)
     if reduction_data is None:
         return dash.no_update
-    
-    # Get column names for the selected reduction method
+
     if reduction_method == 'umap':
         x_col, y_col = 'UMAP1', 'UMAP2'
         title_prefix = 'UMAP'
@@ -517,10 +594,8 @@ def update_gene_expression(selected_gene, reduction_method):
     else:
         return dash.no_update
 
-    # Extract gene expression values
     expression_values = adata[:, selected_gene].X.flatten()
-    
-    # Create the scatter plot with a new color scheme
+
     fig = px.scatter(
         x=reduction_data[x_col],
         y=reduction_data[y_col],
@@ -528,10 +603,9 @@ def update_gene_expression(selected_gene, reduction_method):
         title=f'{title_prefix} Feature Plot for {selected_gene}',
         labels={'x': x_col, 'y': y_col, 'color': f'{selected_gene} Expression'},
         hover_name=adata.obs_names,
-        color_continuous_scale='Agsunset'  
+        color_continuous_scale='Agsunset'
     )
 
-    # Add a colorbar title and improve layout
     fig.update_coloraxes(colorbar_title=f'{selected_gene} Expression')
     fig.update_layout(
         coloraxis_colorbar=dict(
@@ -541,24 +615,21 @@ def update_gene_expression(selected_gene, reduction_method):
         )
     )
 
-    # Apply dark theme styling
     return dark_plotly_layout(fig)
+
 
 @dash.callback(
     Output('marker-heatmap', 'figure'),
     [Input('heatmap-cluster-selector', 'value')]
 )
 def update_heatmap(selected_clusters):
-    # Validate input
     if not selected_clusters or not data['clusters'].isin(selected_clusters).any():
         return go.Figure()
-    
-    # Filter data
+
     mask = data['clusters'].isin(selected_clusters)
     cluster_subset = data['clusters'][mask]
     expr_subset = data['expression'].loc[mask]
 
-    # Get top 5 marker genes per cluster
     top_genes = []
     for cluster in selected_clusters:
         cluster_expr = expr_subset[cluster_subset == cluster]
@@ -566,40 +637,35 @@ def update_heatmap(selected_clusters):
             continue
         mean_expr = cluster_expr.mean().sort_values(ascending=False)
         top_genes.extend(mean_expr.head(5).index.tolist())
-    
-    # Deduplicate while preserving order
+
     seen = set()
     unique_genes = [g for g in top_genes if not (g in seen or seen.add(g))]
-    
-    # Sort cells by cluster
+
     sorted_cells = []
     sorted_cluster_labels = []
     for cluster in selected_clusters:
         cluster_cells = cluster_subset[cluster_subset == cluster].index.tolist()
         sorted_cells.extend(cluster_cells)
         sorted_cluster_labels.extend([cluster] * len(cluster_cells))
-    
-    # Downsample for performance
+
     max_cells = 10000
     if len(sorted_cells) > max_cells:
         step = len(sorted_cells) // max_cells
         sorted_cells = sorted_cells[::step]
         sorted_cluster_labels = sorted_cluster_labels[::step]
-    
+
     heatmap_data = expr_subset.loc[sorted_cells, unique_genes]
 
-    # Z-score normalization
     scaler = StandardScaler()
     scaled_data = scaler.fit_transform(heatmap_data.T).T
 
-    # Create figure
     fig = go.Figure(go.Heatmap(
         z=scaled_data,
         x=unique_genes,
-        y=[f"Cluster {cl}" for cl in sorted_cluster_labels],  # Simplified label
+        y=[f"Cluster {cl}" for cl in sorted_cluster_labels],
         colorscale='rdpu',
         colorbar=dict(title='Z-score'),
         hoverinfo='x+y+z'
     ))
-    
+
     return dark_plotly_layout(fig)
