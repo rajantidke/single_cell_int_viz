@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Montserrat:wght@100;200;300;400;500&display=swap');
+
+/* Dropdown main box */
+.Select-control, .Select--single > .Select-control {
+  background-color: #222 !important;
+  color: #fcf8f8 !important;
+  border-color: #444 !important;
+  font-family: 'DM Mono', monospace !important;
+}
+
+/* Dropdown menu (the list) */
+.Select-menu-outer, .Select-menu {
+  background-color: #222 !important;
+  color: #fcf8f8 !important;
+  font-family: 'DM Mono', monospace !important;
+}
+
+/* Dropdown options */
+.VirtualizedSelectOption {
+  background-color: #222 !important;
+  color: #fcf8f8 !important;
+  font-family: 'DM Mono', monospace !important;
+}
+
+/* Highlighted option on hover */
+.VirtualizedSelectFocusedOption {
+  background-color: #ff48d7 !important;
+  color: #222 !important;
+}
+
+/* Selected value label */
+.Select-value, .Select-value-label {
+  color: #fcf8f8 !important;
+  background-color: #222 !important;
+  font-family: 'DM Mono', monospace !important;
+}
+
+/* Placeholder text */
+.Select-placeholder {
+  color: #fcf8f8 !important;
+  font-family: 'DM Mono', monospace !important;
+}
