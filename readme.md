@@ -42,7 +42,7 @@ single_cell_int_viz/
 │   ├── dashboard.py              # Main visualization dashboard
 │   └── assets/
 │       └── custom.css            # Dark theme styling
-└── screenshots/                  # (reference images, if added)
+└── screenshots/                  # (reference images, TBA)
 ```
 
 ---
