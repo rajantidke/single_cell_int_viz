@@ -204,7 +204,7 @@
     margin-top: 0.3rem;
   }
 
-  /* ---------- Status Ledger (signature element) ---------- */
+  /* ---------- Status Ledger ---------- */
   .ledger {
     border: 1px solid var(--border);
     border-radius: 10px;
@@ -279,6 +279,72 @@
 
   .callout strong { color: var(--text); }
 
+  /* ---------- Figures ---------- */
+  figure {
+    margin: 1.6rem 0;
+  }
+
+  figure img {
+    width: 100%;
+    display: block;
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  figcaption {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 0.6rem;
+    line-height: 1.5;
+  }
+
+  figcaption .fig-num {
+    color: var(--accent);
+    margin-right: 0.4rem;
+  }
+
+  /* ---------- Case study: 2x2 grid ---------- */
+  .case-study-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    margin: 1.8rem 0;
+  }
+
+  .case-study-grid figure { margin: 0; }
+
+  .case-study-step {
+    display: flex;
+    gap: 0.9rem;
+    margin: 1.4rem 0;
+    align-items: flex-start;
+  }
+
+  .case-study-step .step-num {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--bg);
+    background: var(--accent);
+    width: 24px; height: 24px;
+    min-width: 24px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 500;
+  }
+
+  /* ---------- Screenshot gallery ---------- */
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin: 1.8rem 0;
+  }
+
+  .gallery figure { margin: 0; }
+  .gallery figcaption { font-size: 0.7rem; }
+
   /* ---------- Refs ---------- */
   .refs { font-size: 0.85rem; color: var(--text-dim); }
   .refs li { margin-bottom: 0.7rem; }
@@ -307,6 +373,8 @@
     main { padding: 2.5rem 1.5rem 4rem 1.5rem; }
     h1.title { font-size: 1.9rem; }
     .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .case-study-grid { grid-template-columns: 1fr; }
+    .gallery { grid-template-columns: repeat(2, 1fr); }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -325,6 +393,7 @@
       <a href="#problem">Problem</a>
       <a href="#method">Method</a>
       <a href="#dashboard">Dashboard</a>
+      <a href="#case-study">Case Study</a>
       <a href="#evaluation">Evaluation</a>
       <a href="#limitations">Limitations</a>
       <a href="#roadmap">Roadmap</a>
@@ -366,6 +435,10 @@
         <div class="stat"><div class="value">25</div><div class="label">Clusters</div></div>
         <div class="stat"><div class="value">6</div><div class="label">Embeddings</div></div>
       </div>
+      <figure>
+        <img src="assets/figures/umap_2d_clusters.svg" alt="2D UMAP embedding of 2,453 cells colored by 25 Leiden clusters">
+        <figcaption><span class="fig-num">Fig. 1</span>2D UMAP embedding of all 2,453 cells, colored by Leiden cluster. This is the full landscape referenced throughout this report.</figcaption>
+      </figure>
     </section>
 
     <section id="status">
@@ -422,11 +495,15 @@
         same underlying structure.
       </p>
       <p>
-        The goal of this project  is a single
+        The goal of this project is a single
         interactive platform that removes the need to stitch these tools together manually,
         while making the comparison between reduction techniques a first-class feature rather
         than an afterthought.
       </p>
+      <figure>
+        <img src="assets/figures/qc_umi_counts_violin.svg" alt="Violin plot of total UMI counts distribution across all cells">
+        <figcaption><span class="fig-num">Fig. 2</span>Total UMI counts distribution -- one of several QC metrics computed and rendered interactively before any dimensionality reduction is shown to the user.</figcaption>
+      </figure>
     </section>
 
     <section id="method">
@@ -446,6 +523,20 @@
         3D, t-SNE, TriMap, a diffusion map, and PHATE — each capturing a different tradeoff
         between preserving local versus global structure.
       </p>
+      <div class="gallery">
+        <figure>
+          <img src="assets/figures/qc_genes_detected_violin.svg" alt="Violin plot of genes detected per cell">
+          <figcaption><span class="fig-num">Fig. 3</span>Genes detected per cell</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/qc_mitochondrial_violin.svg" alt="Violin plot of mitochondrial percentage per cell">
+          <figcaption><span class="fig-num">Fig. 4</span>Mitochondrial % per cell</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/pca_variance_explained.svg" alt="PCA variance explained across the first 50 principal components">
+          <figcaption><span class="fig-num">Fig. 5</span>PCA variance explained</figcaption>
+        </figure>
+      </div>
       <h3>Visualization layer</h3>
       <p>
         Built with <a href="https://dash.plotly.com/">Dash</a> and
@@ -455,6 +546,20 @@
         dashboard page. Environment management uses conda, with pinned dependencies in
         <code>config/requirements.txt</code> for reproducibility.
       </p>
+      <div class="gallery">
+        <figure>
+          <img src="assets/figures/qc_umi_counts_ridge.svg" alt="Ridge plot of total counts per cluster">
+          <figcaption><span class="fig-num">Fig. 6</span>Total counts, per cluster</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/qc_genes_detected_ridge.svg" alt="Ridge plot of genes detected per cluster">
+          <figcaption><span class="fig-num">Fig. 7</span>Genes detected, per cluster</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/qc_mitochondrial_ridge.svg" alt="Ridge plot of mitochondrial percentage per cluster">
+          <figcaption><span class="fig-num">Fig. 8</span>Mitochondrial %, per cluster</figcaption>
+        </figure>
+      </div>
     </section>
 
     <section id="dashboard">
@@ -478,10 +583,112 @@
         the UMAP tab, the t-SNE tab, and the PHATE tab — making cross-embedding comparison an
         actual analytical tool rather than a visual coincidence.
       </div>
+      <p>The four alternative embeddings below all represent the same 2,453 cells and the same 25 clusters -- only the projection technique differs:</p>
+      <div class="gallery">
+        <figure>
+          <img src="assets/figures/tsne_2d_clusters.svg" alt="2D t-SNE embedding colored by cluster">
+          <figcaption><span class="fig-num">Fig. 9</span>t-SNE</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/trimap_2d_clusters.svg" alt="2D TriMap embedding colored by cluster">
+          <figcaption><span class="fig-num">Fig. 10</span>TriMap</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/diffusion_map_2d_clusters.svg" alt="2D diffusion map embedding colored by cluster">
+          <figcaption><span class="fig-num">Fig. 11</span>Diffusion Map</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/phate_2d_clusters.svg" alt="2D PHATE embedding colored by cluster">
+          <figcaption><span class="fig-num">Fig. 12</span>PHATE</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/umap_3d_clusters.svg" alt="3D UMAP embedding colored by cluster">
+          <figcaption><span class="fig-num">Fig. 13</span>UMAP (3D)</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section id="case-study">
+      <h2><span class="num">06</span> Case Study: From Marker Genes to Cell Identity</h2>
+      <p>
+        The plots below were not chosen at random -- together they trace a single analytical
+        thread through four different views of the same dataset, from a bird's-eye look at
+        every cluster down to the expression of two specific genes.
+      </p>
+
+      <div class="case-study-step">
+        <div class="step-num">1</div>
+        <div>
+          <p style="margin:0;">
+            Start with the full landscape. The 2D UMAP embedding (Fig. 1, above) separates
+            2,453 cells into 25 clusters. Two of them, <strong>Cluster 3</strong> and
+            <strong>Cluster 7</strong>, are selected for closer inspection below.
+          </p>
+        </div>
+      </div>
+
+      <div class="case-study-step">
+        <div class="step-num">2</div>
+        <div>
+          <p style="margin:0;">
+            The marker gene heatmap identifies which genes distinguish these two clusters from
+            everything else. The top 5 marker genes per cluster tell two very different
+            biological stories:
+          </p>
+        </div>
+      </div>
+
+      <figure>
+        <img src="assets/figures/marker_gene_heatmap.svg" alt="Marker gene heatmap comparing Cluster 3 and Cluster 7">
+        <figcaption><span class="fig-num">Fig. 14</span>Top 5 marker genes for Cluster 3 (MS4A6A, MS4A7, C1QB, C1QA, C1QC) and Cluster 7 (NDUFA4L2, RGS5, ACTA2, NOTCH3, ADIRF), z-scored.</figcaption>
+      </figure>
+
+      <p>
+        Cluster 3's markers -- <code>MS4A6A</code>, <code>MS4A7</code>, and the complete C1Q
+        complex (<code>C1QA</code>, <code>C1QB</code>, <code>C1QC</code>) -- are textbook
+        myeloid/macrophage markers. Cluster 7's markers -- <code>RGS5</code>,
+        <code>ACTA2</code>, and <code>NOTCH3</code> -- are classic pericyte and vascular mural
+        cell signatures. Based on marker genes alone, this heatmap proposes that Cluster 3 is
+        a macrophage population and Cluster 7 is a pericyte population.
+      </p>
+
+      <div class="case-study-step">
+        <div class="step-num">3</div>
+        <div>
+          <p style="margin:0;">
+            A heatmap only shows aggregate expression per cluster -- it can't show whether a
+            marker gene is actually spatially concentrated where the cluster sits on the UMAP.
+            The two feature plots below test that directly, by projecting each gene's
+            expression back onto the full embedding.
+          </p>
+        </div>
+      </div>
+
+      <div class="case-study-grid">
+        <figure>
+          <img src="assets/figures/gene_expression_ms4a7.svg" alt="MS4A7 expression overlaid on UMAP embedding">
+          <figcaption><span class="fig-num">Fig. 15</span><code>MS4A7</code> (Cluster 3's top marker) overlaid on UMAP.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/figures/gene_expression_rgs5.svg" alt="RGS5 expression overlaid on UMAP embedding">
+          <figcaption><span class="fig-num">Fig. 16</span><code>RGS5</code> (Cluster 7's top marker) overlaid on UMAP.</figcaption>
+        </figure>
+      </div>
+
+      <div class="callout">
+        <strong>Reading the result:</strong> if the heatmap's proposed identities are correct,
+        <code>MS4A7</code> expression should concentrate specifically over Cluster 3's region
+        of the UMAP, and <code>RGS5</code> should concentrate over Cluster 7's -- not scattered
+        evenly across all 25 clusters. That spatial agreement between an aggregate,
+        cluster-level statistic (the heatmap) and a per-cell, spatially resolved view (the
+        feature plot) is exactly the kind of cross-check this dashboard was built to make easy:
+        move from a summary table to individual cell-level evidence in two clicks, without
+        leaving the browser.
+      </div>
     </section>
 
     <section id="evaluation">
-      <h2><span class="num">06</span> Evaluation</h2>
+      <h2><span class="num">07</span> Evaluation</h2>
       <p>
         Every callback in the rebuilt dashboard was individually exercised against the real
         processed dataset before being considered complete, not just visually inspected, but
@@ -498,17 +705,18 @@
     </section>
 
     <section id="limitations">
-      <h2><span class="num">07</span> Limitations</h2>
+      <h2><span class="num">08</span> Limitations</h2>
       <ul>
         <li>Only supports unimodal scRNA-seq data in <code>.h5ad</code> (AnnData) format.</li>
         <li>No multi-modal support (ATAC-seq, spatial transcriptomics, CITE-seq).</li>
         <li>Preprocessing pipeline has not yet been independently re-verified against raw data by me (see <a href="#status">Status</a>).</li>
         <li>Bundled dataset is a ~2,453-cell subsample, not the full ~100,000-cell dataset described in the original report.</li>
+        <li>Cell type identities in the Case Study section above (macrophage, pericyte) are inferred from canonical marker genes as a demonstration of the workflow, not from formal reference-based annotation.</li>
       </ul>
     </section>
 
     <section id="roadmap">
-      <h2><span class="num">08</span> Roadmap</h2>
+      <h2><span class="num">09</span> Roadmap</h2>
       <ol>
         <li>Re-run and verify <code>single_cell_processing.py</code> against raw data end-to-end.</li>
         <li>Add support for additional input formats (Seurat objects, Loom, CSV matrices).</li>
@@ -519,7 +727,7 @@
     </section>
 
     <section id="references">
-      <h2><span class="num">09</span> References</h2>
+      <h2><span class="num">10</span> References</h2>
       <ol class="refs">
         <li>Forcato, M., Romano, O., &amp; Bicciato, S. (2020). Computational methods for the integrative analysis of single-cell data. <em>Briefings in Bioinformatics</em>, 22.</li>
         <li>Wolf, F. A., Angerer, P., &amp; Theis, F. J. (2018). SCANPY: large-scale single-cell gene expression data analysis. <em>Genome Biology</em>, 19(1).</li>
@@ -539,7 +747,6 @@
 </div>
 
 <script>
-  // Highlight active section in the sidebar TOC as the reader scrolls
   const sections = document.querySelectorAll('section[id]');
   const links = document.querySelectorAll('.toc a');
   const map = new Map();
