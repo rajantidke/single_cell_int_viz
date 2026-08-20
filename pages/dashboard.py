@@ -91,6 +91,24 @@ CLUSTER_COLOR_MAP = {
     cl: _palette[i % len(_palette)] for i, cl in enumerate(_cluster_ids_sorted)
 }
 
+# ---------------------------------------------------------------------------
+# Shared plot-export config. Every dcc.Graph in this dashboard uses this so
+# the download button (camera icon in the mode bar) exports a high-resolution
+# SVG with a descriptive filename instead of Plotly's generic PNG default --
+# useful for pulling figures directly into a report.
+# ---------------------------------------------------------------------------
+def graph_config(filename, width=1000, height=800):
+    return {
+        'displaylogo': False,
+        'toImageButtonOptions': {
+            'format': 'svg',
+            'filename': filename,
+            'width': width,
+            'height': height,
+            'scale': 1  # SVG is vector, so scale doesn't affect sharpness
+        }
+    }
+
 # Theme styles
 tab_style = {
     'backgroundColor': '#222',
@@ -245,14 +263,14 @@ layout = html.Div(
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
                         dbc.Row([
-                            dbc.Col(dcc.Graph(id='violin-counts'), width=4),
-                            dbc.Col(dcc.Graph(id='violin-genes'), width=4),
-                            dbc.Col(dcc.Graph(id='violin-mito'), width=4),
+                            dbc.Col(dcc.Graph(id='violin-counts', config=graph_config('qc_umi_counts_violin')), width=4),
+                            dbc.Col(dcc.Graph(id='violin-genes', config=graph_config('qc_genes_detected_violin')), width=4),
+                            dbc.Col(dcc.Graph(id='violin-mito', config=graph_config('qc_mitochondrial_violin')), width=4),
                         ], className="mb-4"),
                         dbc.Row([
-                            dbc.Col(dcc.Graph(id='ridge-counts'), width=4),
-                            dbc.Col(dcc.Graph(id='ridge-genes'), width=4),
-                            dbc.Col(dcc.Graph(id='ridge-mito'), width=4),
+                            dbc.Col(dcc.Graph(id='ridge-counts', config=graph_config('qc_umi_counts_ridge')), width=4),
+                            dbc.Col(dcc.Graph(id='ridge-genes', config=graph_config('qc_genes_detected_ridge')), width=4),
+                            dbc.Col(dcc.Graph(id='ridge-mito', config=graph_config('qc_mitochondrial_ridge')), width=4),
                         ])
                     ])
                 ]),
@@ -264,7 +282,8 @@ layout = html.Div(
                             "View the proportion of variance explained by each principal component, providing insight into the main sources of variation in your data.",
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
-                        dcc.Graph(id='pca-variance-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
+                        dcc.Graph(id='pca-variance-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'},
+                                  config=graph_config('pca_variance_explained'))
                     ])
                 ]),
                 dcc.Tab(label='UMAP', className="custom-tab", selected_className="custom-tab--selected",
@@ -275,7 +294,8 @@ layout = html.Div(
                             "Visualize cell clusters in a 2D space using UMAP, revealing relationships and groupings among cells based on gene expression patterns.",
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
-                        dcc.Graph(id='umap-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
+                        dcc.Graph(id='umap-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'},
+                                  config=graph_config('umap_2d_clusters'))
                     ])
                 ]),
                 dcc.Tab(label='UMAP 3D', className="custom-tab",
@@ -287,7 +307,8 @@ layout = html.Div(
                             "Explore clusters in three dimensions with 3D UMAP, offering an enhanced perspective on cellular relationships and heterogeneity.",
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
-                        dcc.Graph(id='umap-3d-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
+                        dcc.Graph(id='umap-3d-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'},
+                                  config=graph_config('umap_3d_clusters'))
                     ])
                 ]),
                 dcc.Tab(label='t-SNE', className="custom-tab", selected_className="custom-tab--selected",
@@ -298,7 +319,8 @@ layout = html.Div(
                             "Examine cell populations in 2D using t-SNE, an alternative dimensionality reduction technique for visualizing complex single-cell data.",
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
-                        dcc.Graph(id='tsne-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
+                        dcc.Graph(id='tsne-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'},
+                                  config=graph_config('tsne_2d_clusters'))
                     ])
                 ]),
                 dcc.Tab(label='TriMap', className="custom-tab", selected_className="custom-tab--selected",
@@ -309,7 +331,8 @@ layout = html.Div(
                             "Investigate cell clusters using TriMap, which preserves global data structure in a 2D embedding for single-cell visualization.",
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
-                        dcc.Graph(id='trimap-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
+                        dcc.Graph(id='trimap-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'},
+                                  config=graph_config('trimap_2d_clusters'))
                     ])
                 ]),
                 dcc.Tab(label='DIFFUSION MAP', className="custom-tab", selected_className="custom-tab--selected",
@@ -320,7 +343,8 @@ layout = html.Div(
                             "Analyze cellular trajectories and transitions with Diffusion Map, highlighting continuous processes such as differentiation.",
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
-                        dcc.Graph(id='diffmap-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
+                        dcc.Graph(id='diffmap-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'},
+                                  config=graph_config('diffusion_map_2d_clusters'))
                     ])
                 ]),
                 dcc.Tab(label='PHATE', className="custom-tab", selected_className="custom-tab--selected",
@@ -331,7 +355,8 @@ layout = html.Div(
                             "PHATE visualization captures both local and global structures, making it ideal for exploring developmental trajectories in single-cell data.",
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
-                        dcc.Graph(id='phate-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
+                        dcc.Graph(id='phate-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'},
+                                  config=graph_config('phate_2d_clusters'))
                     ])
                 ]),
                 dcc.Tab(label='GENE EXPRESSION', className="custom-tab", selected_className="custom-tab--selected",
@@ -362,7 +387,8 @@ layout = html.Div(
                             value='CD19' if 'CD19' in data['genes'] else data['genes'][0] if data['genes'] else None,
                             style={'backgroundColor': '#222', 'color': 'black', 'fontFamily': "'DM Mono', monospace"}
                         ),
-                        dcc.Graph(id='gene-expression-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
+                        dcc.Graph(id='gene-expression-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'},
+                                  config=graph_config('gene_expression_overlay'))
                     ])
                 ]),
                 dcc.Tab(label='HEATMAP', className="custom-tab", selected_className="custom-tab--selected",
@@ -380,7 +406,8 @@ layout = html.Div(
                             multi=True,
                             style={'backgroundColor': '#222', 'color': 'black', 'width': '80%', 'fontFamily': "'DM Mono', monospace"}
                         ),
-                        dcc.Graph(id='marker-heatmap', style={'width': '100%', 'height': '650px'})
+                        dcc.Graph(id='marker-heatmap', style={'width': '100%', 'height': '650px'},
+                                  config=graph_config('marker_gene_heatmap', width=1200, height=800))
                     ])
                 ]),
             ]
