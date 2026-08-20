@@ -5,6 +5,8 @@ quality control metrics, multiple dimensionality reduction embeddings (PCA, UMAP
 2D/3D, t-SNE, TriMap, Diffusion Map, PHATE), gene expression overlays, and a
 marker gene heatmap, all without writing code. This is a singular place where a non coding biologist could derive insights about single cell scRNAseq data without delving into computational methods and implementations. 
 
+**[Read the full project report →](https://rajantidke.github.io/single_cell_int_viz/)**
+
 The dashboard has been built, tested, and confirmed working
 end-to-end against a real processed dataset. The preprocessing pipeline script
 is included and based on an envisioned approach, but **has not yet been
