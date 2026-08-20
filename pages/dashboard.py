@@ -177,7 +177,7 @@ stats_strip = html.Div(
         stat_card("Embeddings", 6),
     ],
     style={
-        'display': 'flex', 'gap': '1vw', 'margin': '0 2vw 2vw 2vw'
+        'display': 'flex', 'gap': '1vw', 'marginBottom': '2vw'
     }
 )
 
@@ -187,8 +187,9 @@ layout = html.Div(
         'minHeight': '100vh',
         'color': 'white',
         'fontFamily': "'DM Mono', monospace",
-        'padding': '0',
-        'margin': '0'
+        'padding': '2.5vw 3vw',
+        'margin': '0',
+        'boxSizing': 'border-box'
     },
     children=[
         html.H1(
@@ -198,12 +199,11 @@ layout = html.Div(
                 'fontWeight': 200,
                 'fontSize': '3vw',
                 'letterSpacing': '0.14em',
-                'marginBottom': '1vw',
+                'marginBottom': '1.5vw',
+                'marginTop': '0',
                 'lineHeight': '1.05',
                 'textTransform': 'uppercase',
-                'color': 'white',
-                'marginLeft': '2vw',
-                'marginTop': '2vw'
+                'color': 'white'
             }
         ),
         stats_strip,
@@ -264,7 +264,7 @@ layout = html.Div(
                             "View the proportion of variance explained by each principal component, providing insight into the main sources of variation in your data.",
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
-                        dcc.Graph(id='pca-variance-plot', style={'width': '80vw', 'height': '80vw'})
+                        dcc.Graph(id='pca-variance-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
                     ])
                 ]),
                 dcc.Tab(label='UMAP', className="custom-tab", selected_className="custom-tab--selected",
@@ -275,7 +275,7 @@ layout = html.Div(
                             "Visualize cell clusters in a 2D space using UMAP, revealing relationships and groupings among cells based on gene expression patterns.",
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
-                        dcc.Graph(id='umap-plot', style={'width': '80vw', 'height': '80vw'})
+                        dcc.Graph(id='umap-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
                     ])
                 ]),
                 dcc.Tab(label='UMAP 3D', className="custom-tab",
@@ -287,7 +287,7 @@ layout = html.Div(
                             "Explore clusters in three dimensions with 3D UMAP, offering an enhanced perspective on cellular relationships and heterogeneity.",
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
-                        dcc.Graph(id='umap-3d-plot', style={'width': '80vw', 'height': '80vw'})
+                        dcc.Graph(id='umap-3d-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
                     ])
                 ]),
                 dcc.Tab(label='t-SNE', className="custom-tab", selected_className="custom-tab--selected",
@@ -298,7 +298,7 @@ layout = html.Div(
                             "Examine cell populations in 2D using t-SNE, an alternative dimensionality reduction technique for visualizing complex single-cell data.",
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
-                        dcc.Graph(id='tsne-plot', style={'width': '80vw', 'height': '80vw'})
+                        dcc.Graph(id='tsne-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
                     ])
                 ]),
                 dcc.Tab(label='TriMap', className="custom-tab", selected_className="custom-tab--selected",
@@ -309,7 +309,7 @@ layout = html.Div(
                             "Investigate cell clusters using TriMap, which preserves global data structure in a 2D embedding for single-cell visualization.",
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
-                        dcc.Graph(id='trimap-plot', style={'width': '80vw', 'height': '80vw'})
+                        dcc.Graph(id='trimap-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
                     ])
                 ]),
                 dcc.Tab(label='DIFFUSION MAP', className="custom-tab", selected_className="custom-tab--selected",
@@ -320,7 +320,7 @@ layout = html.Div(
                             "Analyze cellular trajectories and transitions with Diffusion Map, highlighting continuous processes such as differentiation.",
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
-                        dcc.Graph(id='diffmap-plot', style={'width': '80vw', 'height': '80vw'})
+                        dcc.Graph(id='diffmap-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
                     ])
                 ]),
                 dcc.Tab(label='PHATE', className="custom-tab", selected_className="custom-tab--selected",
@@ -331,7 +331,7 @@ layout = html.Div(
                             "PHATE visualization captures both local and global structures, making it ideal for exploring developmental trajectories in single-cell data.",
                             style={'color': '#ccc', 'fontFamily': "'DM Mono', monospace", 'fontSize': '1.1vw', 'marginBottom': '1.5vw'}
                             ),
-                        dcc.Graph(id='phate-plot', style={'width': '80vw', 'height': '80vw'})
+                        dcc.Graph(id='phate-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
                     ])
                 ]),
                 dcc.Tab(label='GENE EXPRESSION', className="custom-tab", selected_className="custom-tab--selected",
@@ -362,7 +362,7 @@ layout = html.Div(
                             value='CD19' if 'CD19' in data['genes'] else data['genes'][0] if data['genes'] else None,
                             style={'backgroundColor': '#222', 'color': 'black', 'fontFamily': "'DM Mono', monospace"}
                         ),
-                        dcc.Graph(id='gene-expression-plot', style={'width': '80vw', 'height': '80vw'})
+                        dcc.Graph(id='gene-expression-plot', style={'width': '100%', 'maxWidth': '900px', 'height': '650px'})
                     ])
                 ]),
                 dcc.Tab(label='HEATMAP', className="custom-tab", selected_className="custom-tab--selected",
@@ -380,7 +380,7 @@ layout = html.Div(
                             multi=True,
                             style={'backgroundColor': '#222', 'color': 'black', 'width': '80%', 'fontFamily': "'DM Mono', monospace"}
                         ),
-                        dcc.Graph(id='marker-heatmap', style={'width': '90vw', 'height': '80vh'})
+                        dcc.Graph(id='marker-heatmap', style={'width': '100%', 'height': '650px'})
                     ])
                 ]),
             ]
