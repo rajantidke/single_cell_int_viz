@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Single Cell Visualization Suite — Project Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d0d;
+    --bg-raised: #161616;
+    --border: #2a2a2a;
+    --text: #e8e8e8;
+    --text-dim: #9a9a9a;
+    --accent: #ff8aff;
+    --accent-dim: #7a4a7a;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Source Serif 4', Georgia, serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--serif);
+    line-height: 1.7;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ---------- Sidebar ---------- */
+  nav.toc {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 3rem 1.5rem 2rem 2rem;
+    border-right: 1px solid var(--border);
+  }
+
+  .toc-title {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 1.2rem;
+  }
+
+  .toc a {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    padding: 0.35rem 0;
+    letter-spacing: 0.01em;
+    border-left: 2px solid transparent;
+    padding-left: 0.8rem;
+    margin-left: -0.82rem;
+  }
+
+  .toc a:hover, .toc a.active {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    text-decoration: none;
+  }
+
+  /* ---------- Main content ---------- */
+  main {
+    padding: 4rem 3.5rem 6rem 3.5rem;
+    max-width: 760px;
+  }
+
+  header.masthead {
+    margin-bottom: 4rem;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  h1.title {
+    font-family: var(--serif);
+    font-weight: 700;
+    font-size: 2.6rem;
+    line-height: 1.15;
+    margin: 0 0 1rem 0;
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    font-size: 1.15rem;
+    color: var(--text-dim);
+    font-weight: 300;
+    max-width: 42ch;
+  }
+
+  .meta {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    margin-top: 2rem;
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .meta strong { color: var(--text); font-weight: 400; }
+
+  section {
+    margin-bottom: 3.5rem;
+    scroll-margin-top: 2rem;
+  }
+
+  h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.6rem;
+    margin-bottom: 1.4rem;
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+  }
+
+  h2 .num {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    color: var(--accent);
+    font-weight: 400;
+  }
+
+  h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin: 1.8rem 0 0.8rem 0;
+  }
+
+  p { margin: 0 0 1.1rem 0; color: var(--text); }
+  p.dim { color: var(--text-dim); }
+
+  ul, ol { padding-left: 1.3rem; }
+  li { margin-bottom: 0.5rem; }
+
+  code, .data {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--bg-raised);
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+    color: var(--accent);
+  }
+
+  /* ---------- Stat grid ---------- */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.8rem;
+    margin: 1.6rem 0 2rem 0;
+  }
+
+  .stat {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 0.8rem;
+    text-align: center;
+  }
+
+  .stat .value {
+    font-family: var(--mono);
+    font-size: 1.4rem;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .stat .label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin-top: 0.3rem;
+  }
+
+  /* ---------- Status Ledger (signature element) ---------- */
+  .ledger {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1.6rem 0 2rem 0;
+  }
+
+  .ledger-row {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.85rem 1.1rem;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 0.85rem;
+  }
+
+  .ledger-row:last-child { border-bottom: none; }
+
+  .ledger-mark {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem;
+  }
+
+  .ledger-mark.done { background: rgba(122, 255, 148, 0.15); color: #7aff94; }
+  .ledger-mark.pending { background: rgba(255, 200, 100, 0.15); color: #ffc864; }
+
+  .ledger-status {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .ledger-status.done { color: #7aff94; }
+  .ledger-status.pending { color: #ffc864; }
+
+  /* ---------- Tables ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.4rem 0;
+    font-size: 0.92rem;
+  }
+
+  th, td {
+    text-align: left;
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+  }
+
+  /* ---------- Blockquote / callout ---------- */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--bg-raised);
+    padding: 1rem 1.3rem;
+    border-radius: 0 8px 8px 0;
+    margin: 1.6rem 0;
+    color: var(--text-dim);
+    font-size: 0.95rem;
+  }
+
+  .callout strong { color: var(--text); }
+
+  /* ---------- Refs ---------- */
+  .refs { font-size: 0.85rem; color: var(--text-dim); }
+  .refs li { margin-bottom: 0.7rem; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding-top: 2rem;
+    margin-top: 3rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--text-dim);
+  }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc {
+      position: static;
+      height: auto;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      padding: 1.5rem;
+    }
+    .toc-list { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; }
+    .toc a { padding: 0.15rem 0; margin-left: 0; border-left: none; }
+    main { padding: 2.5rem 1.5rem 4rem 1.5rem; }
+    h1.title { font-size: 1.9rem; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <nav class="toc" aria-label="Table of contents">
+    <div class="toc-title">Contents</div>
+    <div class="toc-list">
+      <a href="#overview">Overview</a>
+      <a href="#status">Status</a>
+      <a href="#problem">Problem</a>
+      <a href="#method">Method</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#evaluation">Evaluation</a>
+      <a href="#limitations">Limitations</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="#references">References</a>
+    </div>
+  </nav>
+
+  <main>
+    <header class="masthead">
+      <div class="eyebrow">Project Report</div>
+      <h1 class="title">Single Cell Visualization Suite</h1>
+      <p class="subtitle">An integrated dashboard for exploring single-cell RNA-seq data — rebuilt solo from a Georgia Tech CSE6242 team project.</p>
+      <div class="meta">
+        <span>Author: <strong>Rajan Ranjeet Tidke</strong></span>
+        <span>Original team: <strong>Team 048, CSE6242</strong></span>
+        <span>Repo: <strong><a href="https://github.com/rajantidke/single_cell_int_viz">single_cell_int_viz</a></strong></span>
+      </div>
+    </header>
+
+    <section id="overview">
+      <h2><span class="num">01</span> Overview</h2>
+      <p>
+        Single-cell RNA sequencing profiles gene expression at the resolution of individual
+        cells, revealing cell types, states, and transitions that bulk sequencing collapses
+        into an average. The analysis workflow, however, is fragmented across tools: quality
+        control, dimensionality reduction, clustering, and visualization each typically demand
+        a different library, and static plots limit how much of that structure a researcher
+        can actually explore.
+      </p>
+      <p>
+        This project began as a team submission for CSE6242 (Team 048): a Dash-based platform
+        unifying preprocessing and interactive visualization in one Python codebase. This
+        report documents a solo rebuild of that project — reconstructed file by file, tested
+        against real data at each step, with design decisions made deliberately rather than
+        inherited by default.
+      </p>
+      <div class="stat-grid">
+        <div class="stat"><div class="value">2,453</div><div class="label">Cells</div></div>
+        <div class="stat"><div class="value">2,000</div><div class="label">Genes (HVGs)</div></div>
+        <div class="stat"><div class="value">25</div><div class="label">Clusters</div></div>
+        <div class="stat"><div class="value">6</div><div class="label">Embeddings</div></div>
+      </div>
+    </section>
+
+    <section id="status">
+      <h2><span class="num">02</span> Status</h2>
+      <p>
+        Rather than claim the whole pipeline is finished, this section tracks exactly what has
+        been verified against real data and what remains open. It mirrors the same status
+        table maintained in the repository's <code>README.md</code>.
+      </p>
+      <div class="ledger">
+        <div class="ledger-row">
+          <div class="ledger-mark done">✓</div>
+          <div>Dashboard rebuilt and tested end-to-end against real processed data</div>
+          <div class="ledger-status done">Done</div>
+        </div>
+        <div class="ledger-row">
+          <div class="ledger-mark done">✓</div>
+          <div>Every tab and callback individually verified to render correctly</div>
+          <div class="ledger-status done">Done</div>
+        </div>
+        <div class="ledger-row">
+          <div class="ledger-mark done">✓</div>
+          <div>Consistent cluster coloring applied across every embedding</div>
+          <div class="ledger-status done">Done</div>
+        </div>
+        <div class="ledger-row">
+          <div class="ledger-mark pending">…</div>
+          <div>Preprocessing pipeline re-run and verified against raw data by me</div>
+          <div class="ledger-status pending">Pending</div>
+        </div>
+        <div class="ledger-row">
+          <div class="ledger-mark pending">…</div>
+          <div>Support for additional input formats (Seurat, Loom, CSV)</div>
+          <div class="ledger-status pending">Pending</div>
+        </div>
+      </div>
+      <p class="dim">
+        The dataset currently bundled with the dashboard (<code>processed_data.h5ad</code>)
+        is a pre-generated subsample used to build and test the visualization layer. Running
+        the preprocessing script from raw data on my own is a deliberate next step, not an
+        oversight.
+      </p>
+    </section>
+
+    <section id="problem">
+      <h2><span class="num">03</span> Problem</h2>
+      <p>
+        Existing single-cell tools are powerful but fragmented. Preprocessing, clustering,
+        dimensionality reduction, and visualization typically live in separate tools, and
+        researchers without a programming background are largely excluded from the more
+        advanced parts of the workflow. Popular methods like t-SNE and UMAP can also fail to
+        preserve density information accurately at scale, and static plots make it hard to
+        interactively compare how different dimensionality reduction techniques represent the
+        same underlying structure.
+      </p>
+      <p>
+        The goal of this project — in both its original and rebuilt form — is a single
+        interactive platform that removes the need to stitch these tools together manually,
+        while making the comparison between reduction techniques a first-class feature rather
+        than an afterthought.
+      </p>
+    </section>
+
+    <section id="method">
+      <h2><span class="num">04</span> Method</h2>
+      <h3>Preprocessing pipeline</h3>
+      <p>
+        Built on <a href="https://scanpy.readthedocs.io/">Scanpy</a>. Cells are filtered on
+        mitochondrial content (<code>pct_counts_mt &lt; 5</code>) and gene detection
+        (<code>n_genes_by_counts &lt; 2500</code>, <code>min_genes ≥ 200</code>); genes present
+        in fewer than 3 cells are dropped. Counts are normalized to 10,000 per cell and
+        log-transformed, then reduced to the top 2,000 highly variable genes and scaled
+        (<code>max_value=10</code>).
+      </p>
+      <p>
+        PCA (40 components) serves as the shared basis for downstream steps. Leiden clustering
+        runs on a 10-neighbor graph. Six embeddings are computed from there: UMAP in 2D and
+        3D, t-SNE, TriMap, a diffusion map, and PHATE — each capturing a different tradeoff
+        between preserving local versus global structure.
+      </p>
+      <h3>Visualization layer</h3>
+      <p>
+        Built with <a href="https://dash.plotly.com/">Dash</a> and
+        <a href="https://dash-bootstrap-components.opensource.faculty.ai/">dash-bootstrap-components</a>,
+        rendering with Plotly. The app is structured as a multipage Dash application
+        (<code>app.py</code> + <code>pages/</code>), with a landing page and a tabbed
+        dashboard page. Environment management uses conda, with pinned dependencies in
+        <code>config/requirements.txt</code> for reproducibility.
+      </p>
+    </section>
+
+    <section id="dashboard">
+      <h2><span class="num">05</span> Dashboard</h2>
+      <p>The rebuilt dashboard is organized into eleven tabs:</p>
+      <table>
+        <thead><tr><th>Tab</th><th>Shows</th></tr></thead>
+        <tbody>
+          <tr><td>Overview</td><td>Dataset summary and pipeline description</td></tr>
+          <tr><td>Quality Control</td><td>Violin &amp; ridge plots of UMI counts, genes detected, mito %</td></tr>
+          <tr><td>PCA</td><td>Variance explained per principal component</td></tr>
+          <tr><td>UMAP / UMAP 3D</td><td>2D and 3D UMAP embeddings, colored by cluster</td></tr>
+          <tr><td>t-SNE / TriMap / Diffusion Map / PHATE</td><td>Alternative embeddings for comparison</td></tr>
+          <tr><td>Gene Expression</td><td>Overlay any gene's expression onto any embedding</td></tr>
+          <tr><td>Heatmap</td><td>Top marker genes per cluster, z-scored</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <strong>Design decision:</strong> every embedding tab uses one shared cluster-to-color
+        map rather than a different Plotly palette per method. A cell's color is identical on
+        the UMAP tab, the t-SNE tab, and the PHATE tab — making cross-embedding comparison an
+        actual analytical tool rather than a visual coincidence.
+      </div>
+    </section>
+
+    <section id="evaluation">
+      <h2><span class="num">06</span> Evaluation</h2>
+      <p>
+        Every callback in the rebuilt dashboard was individually exercised against the real
+        processed dataset before being considered complete — not just visually inspected, but
+        called directly and checked for correct trace counts, figure shapes, and absence of
+        runtime errors. All ten interactive callbacks (six embeddings, QC metrics, PCA
+        variance, gene expression overlay, and the marker heatmap) passed this check.
+      </p>
+      <p class="dim">
+        This differs from the original team submission's evaluation, which centered on a
+        10-participant user study measuring usability and runtime across the full ~100,000-cell
+        dataset. That user study has not been repeated here; this rebuild's evaluation is
+        limited to functional correctness against the smaller bundled subsample.
+      </p>
+    </section>
+
+    <section id="limitations">
+      <h2><span class="num">07</span> Limitations</h2>
+      <ul>
+        <li>Only supports unimodal scRNA-seq data in <code>.h5ad</code> (AnnData) format.</li>
+        <li>No multi-modal support (ATAC-seq, spatial transcriptomics, CITE-seq).</li>
+        <li>Preprocessing pipeline has not yet been independently re-verified against raw data by me (see <a href="#status">Status</a>).</li>
+        <li>Bundled dataset is a ~2,453-cell subsample, not the full ~100,000-cell dataset described in the original report.</li>
+      </ul>
+    </section>
+
+    <section id="roadmap">
+      <h2><span class="num">08</span> Roadmap</h2>
+      <ol>
+        <li>Re-run and verify <code>single_cell_processing.py</code> against raw data end-to-end.</li>
+        <li>Add support for additional input formats (Seurat objects, Loom, CSV matrices).</li>
+        <li>Explore multi-modal integration (ATAC-seq, spatial transcriptomics).</li>
+        <li>Automated cell type annotation against public reference atlases.</li>
+        <li>Exportable, publication-ready figure generation.</li>
+      </ol>
+    </section>
+
+    <section id="references">
+      <h2><span class="num">09</span> References</h2>
+      <ol class="refs">
+        <li>Forcato, M., Romano, O., &amp; Bicciato, S. (2020). Computational methods for the integrative analysis of single-cell data. <em>Briefings in Bioinformatics</em>, 22.</li>
+        <li>Wolf, F. A., Angerer, P., &amp; Theis, F. J. (2018). SCANPY: large-scale single-cell gene expression data analysis. <em>Genome Biology</em>, 19(1).</li>
+        <li>McInnes, L., Healy, J., &amp; Melville, J. (2018). UMAP: Uniform Manifold Approximation and Projection. <em>arXiv:1802.03426</em>.</li>
+        <li>Amid, E., &amp; Warmuth, M. K. (2019). TriMap: Large-scale Dimensionality Reduction Using Triplets. <em>arXiv:1910.00204</em>.</li>
+        <li>Moon, K. R., et al. (2019). Visualizing structure and transitions in high-dimensional biological data. <em>Nature Biotechnology</em>, 37(12).</li>
+        <li>Traag, V. A., Waltman, L., &amp; van Eck, N. J. (2019). From Louvain to Leiden: guaranteeing well-connected communities. <em>Scientific Reports</em>, 9(1).</li>
+      </ol>
+      <p class="dim">Full reference list from the original team submission is available in the repository.</p>
+    </section>
+
+    <footer>
+      Single Cell Visualization Suite — personal rebuild of Team 048's CSE6242 project.
+      Source: <a href="https://github.com/rajantidke/single_cell_int_viz">github.com/rajantidke/single_cell_int_viz</a>
+    </footer>
+  </main>
+</div>
+
+<script>
+  // Highlight active section in the sidebar TOC as the reader scrolls
+  const sections = document.querySelectorAll('section[id]');
+  const links = document.querySelectorAll('.toc a');
+  const map = new Map();
+  links.forEach(l => map.set(l.getAttribute('href').slice(1), l));
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      const link = map.get(entry.target.id);
+      if (!link) return;
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>
