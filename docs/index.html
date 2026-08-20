@@ -336,10 +336,9 @@
     <header class="masthead">
       <div class="eyebrow">Project Report</div>
       <h1 class="title">Single Cell Visualization Suite</h1>
-      <p class="subtitle">An integrated dashboard for exploring single-cell RNA-seq data — rebuilt solo from a Georgia Tech CSE6242 team project.</p>
+      <p class="subtitle">An integrated dashboard for exploring single-cell RNA-seq data.</p>
       <div class="meta">
         <span>Author: <strong>Rajan Ranjeet Tidke</strong></span>
-        <span>Original team: <strong>Team 048, CSE6242</strong></span>
         <span>Repo: <strong><a href="https://github.com/rajantidke/single_cell_int_viz">single_cell_int_viz</a></strong></span>
       </div>
     </header>
@@ -355,9 +354,9 @@
         can actually explore.
       </p>
       <p>
-        This project began as a team submission for CSE6242 (Team 048): a Dash-based platform
+        This project began as a team submission: a Dash-based platform
         unifying preprocessing and interactive visualization in one Python codebase. This
-        report documents a solo rebuild of that project — reconstructed file by file, tested
+        report documents a solo rebuild of that project, reconstructed file by file, tested
         against real data at each step, with design decisions made deliberately rather than
         inherited by default.
       </p>
@@ -372,7 +371,7 @@
     <section id="status">
       <h2><span class="num">02</span> Status</h2>
       <p>
-        Rather than claim the whole pipeline is finished, this section tracks exactly what has
+        This section tracks exactly what has
         been verified against real data and what remains open. It mirrors the same status
         table maintained in the repository's <code>README.md</code>.
       </p>
@@ -423,7 +422,7 @@
         same underlying structure.
       </p>
       <p>
-        The goal of this project — in both its original and rebuilt form — is a single
+        The goal of this project  is a single
         interactive platform that removes the need to stitch these tools together manually,
         while making the comparison between reduction techniques a first-class feature rather
         than an afterthought.
@@ -485,7 +484,7 @@
       <h2><span class="num">06</span> Evaluation</h2>
       <p>
         Every callback in the rebuilt dashboard was individually exercised against the real
-        processed dataset before being considered complete — not just visually inspected, but
+        processed dataset before being considered complete, not just visually inspected, but
         called directly and checked for correct trace counts, figure shapes, and absence of
         runtime errors. All ten interactive callbacks (six embeddings, QC metrics, PCA
         variance, gene expression overlay, and the marker heatmap) passed this check.
